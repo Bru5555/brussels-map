@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ブリュッセル生活MAP情報すとれーじ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE7;
+    --border: rgba(0,0,0,0.10);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1A1814;
+    --text2: #6B6660;
+    --text3: #A09C97;
+    --accent: #2D6A4F;
+    --accent-light: #E8F4EE;
+    --accent-text: #1B4332;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+
+  .app-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; position: sticky; top: 0; z-index: 100; }
+  .header-inner { max-width: 700px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .header-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .header-title { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .header-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  .main { max-width: 700px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  .input-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin-bottom: 16px; }
+  .input-card-title { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .field-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .field-label { font-size: 11px; font-weight: 500; color: var(--text2); }
+  .field-note { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  .text-input, .select-input {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    padding: 9px 12px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    width: 100%;
+  }
+  .text-input:focus, .select-input:focus { outline: none; border-color: var(--accent); }
+  .text-input::placeholder { color: var(--text3); }
+
+  .select-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A09C97' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+  .select-placeholder { color: var(--text3); }
+
+  .add-btn { width: 100%; padding: 11px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .add-btn:hover { background: #235C42; }
+  .add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .divider { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .divider span { font-size: 11px; color: var(--text3); }
+
+  .manual-toggle { background: none; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 8px 14px; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; color: var(--text2); cursor: pointer; width: 100%; }
+  .manual-toggle:hover { background: var(--surface2); }
+
+  .manual-form { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .manual-form.open { display: block; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 11px; color: var(--text2); font-weight: 500; }
+  .form-group input, .form-group select, .form-group textarea { font-family: 'Noto Sans JP', sans-serif; font-size: 13px; padding: 8px 10px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
+  .form-group textarea { resize: vertical; min-height: 64px; }
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+  .btn-save { padding: 8px 18px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .btn-save:hover { background: #235C42; }
+  .btn-cancel { padding: 8px 12px; background: none; border: none; color: var(--text2); font-family: 'Noto Sans JP', sans-serif; font-size: 13px; cursor: pointer; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+  .stat { background: var(--surface); border-radius: var(--radius-sm); padding: 10px 12px; border: 1px solid var(--border); text-align: center; }
+  .stat-value { font-size: 22px; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  .controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-select, .search-input { font-family: 'Noto Sans JP', sans-serif; font-size: 13px; padding: 8px 10px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+  .filter-select { min-width: 130px; }
+  .search-input { flex: 1; min-width: 120px; }
+  .filter-select:focus, .search-input:focus { outline: none; border-color: var(--accent); }
+  .export-btn { padding: 8px 14px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-sm); font-family: 'Noto Sans JP', sans-serif; font-size: 13px; cursor: pointer; color: var(--text); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .export-btn:hover { background: var(--surface2); }
+
+  .category-section { margin-bottom: 20px; }
+  .cat-header { display: flex; align-items: center; gap: 8px; padding: 6px 0 8px; border-bottom: 2px solid var(--accent-light); margin-bottom: 8px; }
+  .cat-emoji { font-size: 16px; }
+  .cat-name { font-size: 13px; font-weight: 700; color: var(--accent-text); }
+  .cat-count { font-size: 11px; color: var(--text3); margin-left: auto; }
+
+  .place-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 7px; display: flex; gap: 10px; align-items: flex-start; }
+  .place-card:hover { border-color: var(--border2); }
+  .place-info { flex: 1; min-width: 0; }
+  .place-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .place-desc { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
+  .place-meta { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
+  .cat-badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--accent-light); color: var(--accent-text); font-weight: 500; }
+  .meta-tag { font-size: 11px; color: var(--text3); }
+  .place-actions { display: flex; gap: 2px; flex-shrink: 0; }
+  .icon-btn { width: 30px; height: 30px; background: none; border: none; border-radius: 6px; cursor: pointer; color: var(--text3); font-size: 15px; display: flex; align-items: center; justify-content: center; }
+  .icon-btn:hover { background: var(--surface2); color: var(--text2); }
+
+  .empty { text-align: center; padding: 48px 20px; color: var(--text3); }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-text { font-size: 13px; }
+
+  .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; }
+  .modal h3 { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: white; font-size: 13px; padding: 10px 18px; border-radius: 999px; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 300; white-space: nowrap; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 480px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="header-icon">🗺️</div>
+    <div>
+      <div class="header-title">ブリュッセル生活MAP情報すとれーじ</div>
+      <div class="header-sub">Google Maps URLからスポットを整理・保存</div>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="input-card">
+    <div class="input-card-title">スポットを追加</div>
+
+    <div class="field-group">
+      <div class="field-label">Google Maps URL *</div>
+      <input class="text-input" id="urlInput" type="url" placeholder="https://maps.google.com/... または maps.app.goo.gl/..." />
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">店名・施設名</div>
+      <input class="text-input" id="nameInput" placeholder="例: Carrefour Woluwe" />
+      <div class="field-note">※ 入力がない場合、アプリが自動で入力します</div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">カテゴリー</div>
+      <select class="select-input" id="catInput">
+        <option value="" class="select-placeholder">-- 選択しない（自動で判定）--</option>
+        <option>通勤・通学</option><option>ビジネス</option><option>スーパー</option>
+        <option>日本食材</option><option>その他食材調達</option><option>日用品調達</option>
+        <option>家具調達</option><option>病院</option><option>レストラン</option>
+        <option>カフェ</option><option>観光・文化</option><option>公園</option>
+        <option>屋内遊具</option><option>ホテル</option><option>その他</option>
+      </select>
+      <div class="field-note">※ 入力がない場合、アプリが自動で入力します</div>
+    </div>
+
+    <button class="add-btn" id="fetchBtn" onclick="fetchPlace()">
+      上記の内容で追加する
+    </button>
+
+    <div class="divider"><span>または</span></div>
+    <button class="manual-toggle" onclick="toggleManual()">✏️ 手動でくわしく入力する</button>
+
+    <div class="manual-form" id="manualForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>店名・施設名 *</label>
+          <input type="text" id="mName" placeholder="例: Café Central" />
+        </div>
+        <div class="form-group">
+          <label>カテゴリー</label>
+          <select id="mCat">
+            <option>通勤・通学</option><option>ビジネス</option><option>スーパー</option>
+            <option>日本食材</option><option>その他食材調達</option><option>日用品調達</option>
+            <option>家具調達</option><option>病院</option><option>レストラン</option>
+            <option>カフェ</option><option>観光・文化</option><option>公園</option>
+            <option>屋内遊具</option><option>ホテル</option><option>その他</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>説明・メモ</label>
+          <textarea id="mDesc" placeholder="特徴、おすすめポイント、営業時間など"></textarea>
+        </div>
+        <div class="form-group">
+          <label>住所</label>
+          <input type="text" id="mAddr" placeholder="例: Rue de la Loi, Bruxelles" />
+        </div>
+        <div class="form-group">
+          <label>教えてくれた人</label>
+          <input type="text" id="mSrc" placeholder="例: 山田さん" />
+        </div>
+        <div class="form-group full">
+          <label>URL</label>
+          <input type="url" id="mUrl" placeholder="https://..." />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="toggleManual()">キャンセル</button>
+        <button class="btn-save" onclick="saveManual()">✓ 保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats" id="statsArea" style="display:none;"></div>
+
+  <div class="controls" id="controlsArea" style="display:none;">
+    <select class="filter-select" id="catFilter" onchange="render()">
+      <option value="">すべて</option>
+      <option>通勤・通学</option><option>ビジネス</option><option>スーパー</option>
+      <option>日本食材</option><option>その他食材調達</option><option>日用品調達</option>
+      <option>家具調達</option><option>病院</option><option>レストラン</option>
+      <option>カフェ</option><option>観光・文化</option><option>公園</option>
+      <option>屋内遊具</option><option>ホテル</option><option>その他</option>
+    </select>
+    <input class="search-input" id="searchInput" placeholder="名前・説明で検索..." oninput="render()" />
+    <button class="export-btn" onclick="exportXlsx()">📥 Excel出力</button>
+  </div>
+
+  <div id="listArea">
+    <div class="empty">
+      <div class="empty-icon">🗺️</div>
+      <div class="empty-text">URLを貼り付けてスポットを追加してください</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>✏️ スポットを編集</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>店名・施設名</label><input id="eName" /></div>
+      <div class="form-group"><label>カテゴリー</label>
+        <select id="eCat">
+          <option>通勤・通学</option><option>ビジネス</option><option>スーパー</option>
+          <option>日本食材</option><option>その他食材調達</option><option>日用品調達</option>
+          <option>家具調達</option><option>病院</option><option>レストラン</option>
+          <option>カフェ</option><option>観光・文化</option><option>公園</option>
+          <option>屋内遊具</option><option>ホテル</option><option>その他</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>説明・メモ</label><textarea id="eDesc"></textarea></div>
+      <div class="form-group"><label>住所</label><input id="eAddr" /></div>
+      <div class="form-group"><label>教えてくれた人</label><input id="eSrc" /></div>
+      <div class="form-group full"><label>URL</label><input type="url" id="eUrl" /></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
+      <button class="btn-save" onclick="saveEdit()">✓ 保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const DB_NAME = 'brusselsMapDB';
+const DB_VERSION = 1;
+const STORE = 'places';
+let db;
+let places = [];
+let editId = null;
+
+const CAT_ICONS = {
+  '通勤・通学':'🚃','ビジネス':'💼','スーパー':'🛒','日本食材':'🍱',
+  'その他食材調達':'🥬','日用品調達':'🧴','家具調達':'🛋️','病院':'🏥',
+  'レストラン':'🍽️','カフェ':'☕','観光・文化':'🏛️','公園':'🌳',
+  '屋内遊具':'🎠','ホテル':'🏨','その他':'📍'
+};
+const CAT_ORDER = ['通勤・通学','ビジネス','スーパー','日本食材','その他食材調達','日用品調達','家具調達','病院','レストラン','カフェ','観光・文化','公園','屋内遊具','ホテル','その他'];
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE)) {
+        d.createObjectStore(STORE, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = e => reject(e);
+  });
+}
+function dbGetAll() {
+  return new Promise((res, rej) => {
+    const req = db.transaction(STORE,'readonly').objectStore(STORE).getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror = e => rej(e);
+  });
+}
+function dbPut(item) {
+  return new Promise((res, rej) => {
+    const req = db.transaction(STORE,'readwrite').objectStore(STORE).put(item);
+    req.onsuccess = () => res();
+    req.onerror = e => rej(e);
+  });
+}
+function dbDelete(id) {
+  return new Promise((res, rej) => {
+    const req = db.transaction(STORE,'readwrite').objectStore(STORE).delete(id);
+    req.onsuccess = () => res();
+    req.onerror = e => rej(e);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toggleManual() {
+  document.getElementById('manualForm').classList.toggle('open');
+}
+
+function guessCategoryFromUrl(url) {
+  const u = url.toLowerCase();
+  if (u.includes('carrefour')||u.includes('delhaize')||u.includes('colruyt')||u.includes('supermarche')||u.includes('supermarkt')) return 'スーパー';
+  if (u.includes('hospital')||u.includes('hopital')||u.includes('clinique')||u.includes('doctor')||u.includes('medecin')) return '病院';
+  if (u.includes('cafe')||u.includes('coffee')||u.includes('koffie')) return 'カフェ';
+  if (u.includes('restaurant')||u.includes('brasserie')) return 'レストラン';
+  if (u.includes('hotel')||u.includes('hostel')) return 'ホテル';
+  if (u.includes('museum')||u.includes('musee')||u.includes('church')||u.includes('eglise')||u.includes('cathedral')) return '観光・文化';
+  if (u.includes('park')||u.includes('parc')||u.includes('garden')||u.includes('jardin')) return '公園';
+  if (u.includes('station')||u.includes('metro')||u.includes('gare')||u.includes('tram')) return '通勤・通学';
+  if (u.includes('ikea')||u.includes('furniture')||u.includes('meuble')) return '家具調達';
+  return 'その他';
+}
+
+async function fetchPlace() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) { showToast('URLを入力してください'); return; }
+
+  const userName = document.getElementById('nameInput').value.trim();
+  const userCat = document.getElementById('catInput').value;
+
+  const btn = document.getElementById('fetchBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> 取得中...';
+
+  try {
+    let info = { name: userName || 'スポット', category: userCat || guessCategoryFromUrl(url), description: '', address: '' };
+
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 600,
+          system: 'Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation whatsoever.',
+          messages: [{
+            role: 'user',
+            content: `Google Maps URL: ${url}
+User provided name: "${userName || ''}"
+User provided category: "${userCat || ''}"
+
+Respond ONLY with this JSON:
+{
+  "name": "${userName ? userName : 'infer from URL if possible, otherwise use Japanese generic name for this type of place'}",
+  "category": "${userCat ? userCat : 'one of: 通勤・通学, ビジネス, スーパー, 日本食材, その他食材調達, 日用品調達, 家具調達, 病院, レストラン, カフェ, 観光・文化, 公園, 屋内遊具, ホテル, その他'}",
+  "description": "2-3 sentences in Japanese describing this place based on its name/URL",
+  "address": "Brussels area address if identifiable, else empty string"
+}
+Rules: if user provided name, use it exactly. If user provided category, use it exactly.`
+          }]
+        })
+      });
+      const data = await resp.json();
+      const text = (data.content||[]).map(c=>c.text||'').join('');
+      const clean = text.replace(/```json|```/g,'').trim();
+      const parsed = JSON.parse(clean);
+      info = {
+        name: userName || parsed.name || 'スポット',
+        category: userCat || parsed.category || 'その他',
+        description: parsed.description || '',
+        address: parsed.address || ''
+      };
+    } catch(e) {
+      info.name = userName || 'スポット';
+      info.category = userCat || guessCategoryFromUrl(url);
+    }
+
+    const newPlace = {
+      id: String(Date.now()),
+      name: info.name,
+      category: info.category,
+      description: info.description,
+      address: info.address,
+      source: '',
+      url: url,
+      added: new Date().toLocaleDateString('ja-JP')
+    };
+
+    await dbPut(newPlace);
+    places = await dbGetAll();
+    render();
+    document.getElementById('urlInput').value = '';
+    document.getElementById('nameInput').value = '';
+    document.getElementById('catInput').value = '';
+    showToast(`「${newPlace.name}」を追加しました`);
+  } catch(err) {
+    showToast('追加に失敗しました。手動入力をお試しください。');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '上記の内容で追加する';
+}
+
+async function saveManual() {
+  const name = document.getElementById('mName').value.trim();
+  if (!name) { showToast('店名・施設名を入力してください'); return; }
+  const newPlace = {
+    id: String(Date.now()),
+    name,
+    category: document.getElementById('mCat').value,
+    description: document.getElementById('mDesc').value.trim(),
+    address: document.getElementById('mAddr').value.trim(),
+    source: document.getElementById('mSrc').value.trim(),
+    url: document.getElementById('mUrl').value.trim(),
+    added: new Date().toLocaleDateString('ja-JP')
+  };
+  await dbPut(newPlace);
+  places = await dbGetAll();
+  render();
+  ['mName','mDesc','mAddr','mSrc','mUrl'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('manualForm').classList.remove('open');
+  showToast(`「${newPlace.name}」を追加しました`);
+}
+
+function render() {
+  const catFilter = document.getElementById('catFilter')?.value || '';
+  const search = (document.getElementById('searchInput')?.value||'').toLowerCase();
+  const filtered = places.filter(p => {
+    if (catFilter && p.category !== catFilter) return false;
+    if (search && !p.name.toLowerCase().includes(search) && !(p.description||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const statsArea = document.getElementById('statsArea');
+  const ctrlArea = document.getElementById('controlsArea');
+  if (places.length > 0) {
+    statsArea.style.display = 'grid';
+    ctrlArea.style.display = 'flex';
+    const cats = new Set(places.map(p=>p.category));
+    statsArea.innerHTML = `
+      <div class="stat"><div class="stat-value">${places.length}</div><div class="stat-label">合計スポット</div></div>
+      <div class="stat"><div class="stat-value">${cats.size}</div><div class="stat-label">カテゴリー数</div></div>
+      <div class="stat"><div class="stat-value">${filtered.length}</div><div class="stat-label">表示中</div></div>`;
+  } else {
+    statsArea.style.display = 'none';
+    ctrlArea.style.display = 'none';
+  }
+
+  const area = document.getElementById('listArea');
+  if (filtered.length === 0) {
+    area.innerHTML = `<div class="empty"><div class="empty-icon">🗺️</div><div class="empty-text">${places.length===0?'URLを貼り付けてスポットを追加してください':'条件に一致するスポットがありません'}</div></div>`;
+    return;
+  }
+
+  const grouped = {};
+  filtered.forEach(p => { if (!grouped[p.category]) grouped[p.category]=[]; grouped[p.category].push(p); });
+  const orderedKeys = CAT_ORDER.filter(c => grouped[c]);
+
+  area.innerHTML = orderedKeys.map(cat => `
+    <div class="category-section">
+      <div class="cat-header">
+        <span class="cat-emoji">${CAT_ICONS[cat]||'📍'}</span>
+        <span class="cat-name">${esc(cat)}</span>
+        <span class="cat-count">${grouped[cat].length}件</span>
+      </div>
+      ${grouped[cat].map(p => `
+        <div class="place-card">
+          <div class="place-info">
+            <div class="place-name">${esc(p.name)}</div>
+            ${p.description?`<div class="place-desc">${esc(p.description)}</div>`:''}
+            <div class="place-meta">
+              <span class="cat-badge">${esc(p.category)}</span>
+              ${p.address?`<span class="meta-tag">📍 ${esc(p.address)}</span>`:''}
+              ${p.source?`<span class="meta-tag">👤 ${esc(p.source)}</span>`:''}
+              ${p.added?`<span class="meta-tag">${esc(p.added)}</span>`:''}
+            </div>
+          </div>
+          <div class="place-actions">
+            ${p.url?`<button class="icon-btn" onclick="window.open('${esc(p.url)}','_blank')" title="地図を開く">🗺️</button>`:''}
+            <button class="icon-btn" onclick="openEdit('${esc(p.id)}')" title="編集">✏️</button>
+            <button class="icon-btn" onclick="deletePlace('${esc(p.id)}')" title="削除">🗑️</button>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function openEdit(id) {
+  const p = places.find(x=>x.id===id);
+  if (!p) return;
+  editId = id;
+  document.getElementById('eName').value = p.name||'';
+  document.getElementById('eCat').value = p.category||'その他';
+  document.getElementById('eDesc').value = p.description||'';
+  document.getElementById('eAddr').value = p.address||'';
+  document.getElementById('eSrc').value = p.source||'';
+  document.getElementById('eUrl').value = p.url||'';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); editId=null; }
+async function saveEdit() {
+  if (!editId) return;
+  const p = places.find(x=>x.id===editId);
+  if (!p) return;
+  p.name = document.getElementById('eName').value.trim();
+  p.category = document.getElementById('eCat').value;
+  p.description = document.getElementById('eDesc').value.trim();
+  p.address = document.getElementById('eAddr').value.trim();
+  p.source = document.getElementById('eSrc').value.trim();
+  p.url = document.getElementById('eUrl').value.trim();
+  await dbPut(p);
+  places = await dbGetAll();
+  render(); closeModal();
+  showToast('保存しました');
+}
+
+async function deletePlace(id) {
+  const p = places.find(x=>x.id===id);
+  if (!p) return;
+  if (!confirm(`「${p.name}」を削除しますか？`)) return;
+  await dbDelete(id);
+  places = await dbGetAll();
+  render();
+  showToast('削除しました');
+}
+
+function exportXlsx() {
+  if (places.length===0) { showToast('エクスポートするスポットがありません'); return; }
+  const sorted = [...places].sort((a,b)=>CAT_ORDER.indexOf(a.category)-CAT_ORDER.indexOf(b.category));
+  const data = [['カテゴリー','店名・施設名','説明・メモ','住所','教えてくれた人','URL','追加日']];
+  sorted.forEach(p => data.push([p.category||'',p.name||'',p.description||'',p.address||'',p.source||'',p.url||'',p.added||'']));
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:14},{wch:26},{wch:48},{wch:28},{wch:14},{wch:38},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws, 'マップリスト');
+  const sumData = [['カテゴリー','件数']];
+  CAT_ORDER.forEach(cat => { const c=places.filter(p=>p.category===cat).length; if(c>0) sumData.push([cat,c]); });
+  const ws2 = XLSX.utils.aoa_to_sheet(sumData);
+  ws2['!cols'] = [{wch:18},{wch:8}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'カテゴリー集計');
+  const dateStr = new Date().toLocaleDateString('ja-JP').replace(/\//g,'-');
+  XLSX.writeFile(wb, `ブリュッセルMAPリスト_${dateStr}.xlsx`);
+  showToast('Excelファイルを出力しました');
+}
+
+openDB().then(async () => {
+  places = await dbGetAll();
+  render();
+}).catch(() => {
+  document.getElementById('listArea').innerHTML = '<div class="empty"><div class="empty-text">データベースの初期化に失敗しました。ブラウザを再読み込みしてください。</div></div>';
+});
+</script>
+</body>
+</html>
